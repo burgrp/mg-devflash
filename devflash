@@ -1,0 +1,44 @@
+#!/bin/bash
+
+set -e
+
+PORT=$1
+SSID=$2
+PASS=$3
+MQTT=$4
+
+if [ -z $PASS ]
+then
+	echo "use: dev <port> <ssid> <pass>"
+	exit 1
+fi
+
+PASS=$(echo -n $PASS | xxd -p)
+
+if [ -z $MQTT ]
+then
+  MQTT=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8):1883
+fi
+
+mos build --verbose --local
+
+mos flash --port $PORT
+
+mos --port $PORT config-set $(cat <<EOF
+wifi.ap.enable=false
+wifi.sta.enable=true
+wifi.sta.ssid=$SSID
+wifi.sta.pass=$PASS
+mqtt.enable=true
+mqtt.server=$MQTT
+EOF
+)
+
+
+RESTART="$0 $@"
+restart() {
+	$RESTART
+}
+
+trap restart INT
+mos console --port $PORT
