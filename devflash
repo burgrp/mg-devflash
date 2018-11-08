@@ -6,6 +6,8 @@ PORT=$1
 SSID=$2
 PASS=$3
 MQTT=$4
+EXTFS=$5
+
 
 if [ -z $PASS ]
 then
@@ -24,6 +26,15 @@ mos build --verbose --local
 
 mos flash --port $PORT
 
+if [ ! -z $EXTFS ]
+then
+	for F in $EXTFS/*
+	do
+		echo "Uploading $F"
+		mos --port=$PORT put $F
+	done
+fi
+
 mos --port $PORT config-set $(cat <<EOF
 wifi.ap.enable=false
 wifi.sta.enable=true
@@ -33,7 +44,6 @@ mqtt.enable=true
 mqtt.server=$MQTT
 EOF
 )
-
 
 RESTART="$0 $@"
 restart() {
