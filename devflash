@@ -3,47 +3,25 @@
 set -e
 
 PORT=$1
-SSID=$2
-PASS=$3
-MQTT=$4
-EXTFS=$5
+FS_BUILD=$2
 
-
-if [ -z $PASS ]
+if [ -z $PORT ]
 then
-	echo "use: dev <port> <ssid> <pass>"
+	echo "use: devflash <port> [fs-build directory]"
 	exit 1
 fi
 
-#PASS=$(echo -n $PASS | xxd -p)
-
-if [ -z $MQTT ]
-then
-  MQTT=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f8):1883
+if [ ! -z $FS_BUILD ]
+then	
+	rm fs-build -rf	
+	cp -rvL $FS_BUILD fs-build
 fi
 
 mos build --verbose --local
 
+#rm fs-build -rf
+
 mos flash --port $PORT
-
-if [ ! -z $EXTFS ]
-then
-	for F in $EXTFS/*
-	do
-		echo "Uploading $F"
-		mos --port=$PORT put $F
-	done
-fi
-
-mos --port $PORT config-set $(cat <<EOF
-wifi.ap.enable=false
-wifi.sta.enable=true
-wifi.sta.ssid=$SSID
-wifi.sta.pass=$PASS
-mqtt.enable=true
-mqtt.server=$MQTT
-EOF
-)
 
 RESTART="$0 $@"
 restart() {
