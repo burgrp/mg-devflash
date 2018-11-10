@@ -19,7 +19,7 @@ fi
 
 mos build --verbose --local
 
-#rm fs-build -rf
+rm fs-build -rf
 
 mos flash --port $PORT
 
