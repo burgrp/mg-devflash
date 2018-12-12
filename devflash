@@ -3,24 +3,14 @@
 set -e
 
 PORT=$1
-FS_BUILD=$2
 
 if [ -z $PORT ]
 then
-	echo "use: devflash <port> [fs-build directory]"
+	echo "use: devflash <port>"
 	exit 1
 fi
 
-if [ ! -z $FS_BUILD ]
-then	
-	rm fs-build -rf	
-	cp -rvL $FS_BUILD fs-build
-fi
-
 mos build --verbose --local
-
-rm fs-build -rf
-
 mos flash --port $PORT
 
 RESTART="$0 $@"
